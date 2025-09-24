@@ -53,9 +53,39 @@ def ComputeReactions(nodes):
     
     # Continue from here
     # Sum of moments about the pin
+    #Get the x and y coordinates of the node and stores it in an array
+    [pin_x,pin_y] = pin_node.location
+    #Get the x and y coordinates of the roller and stores it in an array
+    [roller_x,roller_y] = roller_node.location
 
-    # sum of forces in y direction
-
-    # sum of forces in x direction
-    
-    
+    roller_reaction = 0  #Set the starting reaction to zero
+    reaction_pin_y=0
+    reaction_pin_x=0
+    for node in nodes:
+        [node_x, node_y] = node.location
+        # Sum of forces in the y direction
+        roller_reaction += node.yforce_external * (node_x - pin_x)
+        # Sum of forces in the x direction
+        roller_reaction += node.xforce_external * (pin_y - node_y)
+        reaction_pin_x += node.xforce_external
+        reaction_pin_y += node.yforce_external
+        
+    if(roller_node.constraint == 'roller_no_xdisp'):
+            roller_reaction = -roller_reaction / (pin_y - roller_y)
+            roller_node.AddReactionXForce(roller_reaction)
+            
+            # Calculate and store the reaction forces for the pin node
+            reaction_pin_x =-reaction_pin_x - roller_reaction  # Check line of equation
+            reaction_pin_y = -reaction_pin_y                   # Check line of equation
+            pin_node.AddReactionXForce(reaction_pin_x)  # Save pin reactions
+            pin_node.AddReactionYForce(reaction_pin_y)  # Save pin reactions
+            
+    elif(roller_node.constraint == 'roller_no_ydisp'):
+            roller_reaction = -roller_reaction / (roller_x - pin_x)
+            roller_node.AddReactionYForce(roller_reaction)
+            
+            # Calculate and store the reaction forces for the pin node
+            reaction_pin_x = -reaction_pin_x                    # Check line of equation
+            reaction_pin_y = -reaction_pin_y - roller_reaction  # Check line of equation
+            pin_node.AddReactionXForce(reaction_pin_x)  # Save pin reactions
+            pin_node.AddReactionYForce(reaction_pin_y)  # Save pin reactions
